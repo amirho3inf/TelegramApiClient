@@ -82,10 +82,6 @@ client.run()
 
 > message.message_id #*int*
 
-> message.callback_id #*int*
-
-> message.inline_id #*int*
-
 - Functions
 
 > message.reply([ text or caption ], parse_mode=None, disable_web_page_preview=None, disable_notification=None, reply_markup=None, MEDIA)
