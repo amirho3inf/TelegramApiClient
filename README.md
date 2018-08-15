@@ -1,5 +1,9 @@
 ## A simple telegram client based on [Telepot](https://github.com/nickoala/telepot) ( Telepot upgraded version )
 
+# Installation
+```
+pip3 install TelegramApiClient
+```
 
 # Example 💡
 
