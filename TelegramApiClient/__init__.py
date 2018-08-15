@@ -4,114 +4,115 @@ import telepot.aio
 from telepot.namedtuple import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup
 import asyncio
 import threading
+import json
 class Filters:
     def text(func):
-        def inner(client, update):
+        def inner(update):
             if "message" in update:
                 if "text" in update['message']:
-                    func(client, update)
+                    func(update)
             elif "text" in update:
-                func(client, update)
+                func(update)
         return inner
     def photo(func):
-        def inner(client, update):
+        def inner(update):
             if "message" in update:
                 if "photo" in update['message']:
-                    func(client, update)
+                    func(update)
             elif "photo" in update:
-                func(client, update)
+                func(update)
         return inner
     def video(func):
-        def inner(client, update):
+        def inner(update):
             if "message" in update:
                 if "video" in update['message']:
-                    func(client, update)
+                    func(update)
             elif "video" in update:
-                func(client, update)
+                func(update)
         return inner
     def voice(func):
-        def inner(client, update):
+        def inner(update):
             if "message" in update:
                 if "voice" in update['message']:
-                    func(client, update)
+                    func(update)
             elif "voice" in update:
-                func(client, update)
+                func(update)
         return inner
     def audio(func):
-        def inner(client, update):
+        def inner(update):
             if "message" in update:
                 if "audio" in update['message']:
-                    func(client, update)
+                    func(update)
             elif "audio" in update:
-                func(client, update)
+                func(update)
         return inner
     def document(func):
-        def inner(client, update):
+        def inner(update):
             if "message" in update:
                 if "document" in update['message']:
-                    func(client, update)
+                    func(update)
             elif "document" in update:
-                func(client, update)
+                func(update)
         return inner
     def sticker(func):
-        def inner(client, update):
+        def inner(update):
             if "message" in update:
                 if "sticker" in update['message']:
-                    func(client, update)
+                    func(update)
             elif "sticker" in update:
-                func(client, update)
+                func(update)
         return inner
     def video_note(func):
-        def inner(client, update):
+        def inner(update):
             if "message" in update:
                 if "video_note" in update['message']:
-                    func(client, update)
+                    func(update)
             elif "video_note" in update:
-                func(client, update)
+                func(update)
         return inner
     def command(pattern):
         def inner(func):
-            def inner2(client, update):
+            def inner2(update):
                 regex = re.compile(pattern, flags=re.MULTILINE | re.DOTALL)
                 if "text" in update and regex.match(update['text']):
-                    func(client, update)
+                    func(update)
             return inner2
         return inner
     def group(func):
-        def inner(client, update):
+        def inner(update):
             if update['chat']['type'] == 'group':
-                func(client, update)
+                func(update)
         return inner
     def supergroup(func):
-        def inner(client, update):
+        def inner(update):
             if update['chat']['type'] == 'supergroup':
-                func(client, update)
+                func(update)
         return inner
     def private(func):
-        def inner(client, update):
+        def inner(update):
             if update['chat']['type'] == 'private':
-                func(client, update)
+                func(update)
         return inner
     def channel(func):
-        def inner(client, update):
+        def inner(update):
             if update['chat']['type'] == 'channel':
-                func(client, update)
+                func(update)
         return inner
     def chat_id(chat_id):
         def inner(func):
-            def inner2(client, update):
+            def inner2(update):
                 if type(chat_id) is list:
                     for id in chat_id:
                         if update['chat']['id'] == id:
-                            func(client, update)
+                            func(update)
                 elif type(chat_id) is int:
                     if update['chat']['id'] == chat_id:
-                        func(client, update)
+                        func(update)
             return inner2
         return inner
     def chat_name(filter_name):
         def inner(func):
-            def inner2(client, update):
+            def inner2(update):
                 if "title" in update['chat']:
                     chat_name = update['chat']['title']
                 elif "first_name" in update['chat']:
@@ -121,15 +122,15 @@ class Filters:
                 if type(filter_name) is list:
                     for name in filter_name:
                         if str(name) == chat_name:
-                            func(client, update)
+                            func(update)
                 elif type(filter_name) is str:
                     if filter_name == chat_name:
-                        func(client, update)
+                        func(update)
             return inner2
         return inner
     def chat_username(filter_username):
         def inner(func):
-            def inner2(client, update):
+            def inner2(update):
                 if 'username' in update['chat']:
                     username = update['chat']['username'].lower()
                 else:
@@ -138,22 +139,22 @@ class Filters:
                     for chat_username in filter_username:
                         chat_username = chat_username.replace("@", "")
                         if str(chat_username).lower() == username:
-                            func(client, update)
+                            func(update)
                 elif type(filter_username) is str:
                     filter_username = filter_username.replace("@", "")
                     if filter_username.lower() == username:
-                        func(client, update)
+                        func(update)
             return inner2
         return inner
 class handlerObject:
     def __init__(self, func, filter):
         self.filter = filter
         self.func = func
-    def process(self, client, message):
+    def process(self, message):
         @self.filter
-        def subprocess(client, message):
-            self.func(client, message)
-        subprocess(client, message)
+        def subprocess(message):
+            self.func(message)
+        subprocess(message)
 class SubClient:
     def __init__(self, bot, update):
         self.update = update
@@ -170,6 +171,10 @@ class SubClient:
         except: self.sender = None
         self.chat = update['chat']['id']
         self.bot = bot
+    def __str__(self):
+        return json.dumps(self.update, indent=4, sort_keys=True)
+    def __getitem__(self, item):
+        return self.update[item]
     def reply(self, text=None, photo=None, sticker=None, document=None, voice=None, audio=None, video=None, video_note=None, duration=None, length=None, parse_mode=None, disable_web_page_preview=None, disable_notification=None, reply_markup=None):
         if photo:
             return self.bot.sendPhoto(self.update['chat']['id'], photo, caption=text, reply_to_message_id=self.update['message_id'], parse_mode=parse_mode, disable_notification=disable_notification, reply_markup=reply_markup)
@@ -226,15 +231,15 @@ class Client:
         self._inline_query_handlers = []
         self._message_handlers = []
         self._edited_message_handlers = []
-    def message(self, filter=lambda func: (lambda client, update: func(client, update))):
+    def message(self, filter=lambda func: (lambda update: func(update))):
         def inner(func):
             self._message_handlers.append(handlerObject(func, filter).process)
         return inner
-    def edited_message(self, filter=lambda func: (lambda client, update: func(client, update))):
+    def edited_message(self, filter=lambda func: (lambda update: func(update))):
         def inner(func):
             self._edited_message_handlers.append(handlerObject(func, filter).process)
         return inner
-    def callback_query(self, filter=lambda func: (lambda client, update: func(client, update))):
+    def callback_query(self, filter=lambda func: (lambda update: func(update))):
         def inner(func):
             self._callback_query_handlers.append(handlerObject(func, filter).process)
         return inner
@@ -252,19 +257,19 @@ class Client:
                 update['text'] = update['data']
                 update["chat"] = update["message"]["chat"]
                 update["message_id"] = update["message"]["message_id"]
-                for func in self._callback_query_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update), update,)).start()
+                for func in self._callback_query_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update),)).start()
             elif "query" in update:
                 update['type'] = "inline_query"
                 update['text'] = update['query']
                 update['chat'] = update['from']
                 update['message_id'] = None
-                for func in self._inline_query_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update), update,)).start()
+                for func in self._inline_query_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update),)).start()
             else:
                 update['type'] = "message"
                 if "edit_date" in update:
-                    for func in self._edited_message_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update), update)).start()
+                    for func in self._edited_message_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update),)).start()
                 else:
-                    for func in self._message_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update), update)).start()
+                    for func in self._message_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update),)).start()
         bot = telepot.aio.Bot(self.token)
         answerer = telepot.aio.helper.Answerer(bot)
         loop = asyncio.get_event_loop()
