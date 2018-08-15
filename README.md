@@ -103,3 +103,11 @@ client.run()
 > message.edit_reply_markup(reply_markup)
 
 > message.answer(text, alert=None)
+
+# Reply markup
+> Keyboard([['Plain text'],
+           [dict(text='Phone', request_contact=True), dict(text='Location', request_location=True)]], resize_keyboard=None)
+
+> RemoveKeyboard()
+
+> InlineKeyboard([[dict(text='URL', url='https://core.telegram.org/')], [InlineKeyboardButton(text='Callback', callback_data='Callback data')], [dict(text='Switch to using bot inline', switch_inline_query='initial query')]])
