@@ -104,7 +104,7 @@ client.run()
 
 > message.answer(text, alert=None)
 
-# Reply markup
+## Reply markup
 > Keyboard([['Plain text'],
            [dict(text='Phone', request_contact=True), dict(text='Location', request_location=True)]], resize_keyboard=None)
 
