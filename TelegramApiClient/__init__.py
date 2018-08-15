@@ -155,7 +155,7 @@ class handlerObject:
         def subprocess(message):
             self.func(message)
         subprocess(message)
-class SubClient:
+class MessageObject:
     def __init__(self, bot, update):
         self.update = update
         try: self.text = update['text']
@@ -250,24 +250,26 @@ class Client:
     def run(self):
         @asyncio.coroutine
         def updates_processor(update):
-            if "data" in update:
-                update['type'] = "callback_query"
-                update['text'] = update['data']
-                update["chat"] = update["message"]["chat"]
-                update["message_id"] = update["message"]["message_id"]
-                for func in self._callback_query_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update),)).start()
-            elif "query" in update:
-                update['type'] = "inline_query"
-                update['text'] = update['query']
-                update['chat'] = update['from']
-                update['message_id'] = None
-                for func in self._inline_query_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update),)).start()
-            else:
-                update['type'] = "message"
-                if "edit_date" in update:
-                    for func in self._edited_message_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update),)).start()
+            def processor(update):
+                if "data" in update:
+                    update['type'] = "callback_query"
+                    update['text'] = update['data']
+                    update["chat"] = update["message"]["chat"]
+                    update["message_id"] = update["message"]["message_id"]
+                    for func in self._callback_query_handlers: func(MessageObject(self.bot, update))
+                elif "query" in update:
+                    update['type'] = "inline_query"
+                    update['text'] = update['query']
+                    update['chat'] = update['from']
+                    update['message_id'] = None
+                    for func in self._inline_query_handlers: func(MessageObject(self.bot, update))
                 else:
-                    for func in self._message_handlers: threading.Thread(target=func, args=(SubClient(self.bot, update),)).start()
+                    update['type'] = "message"
+                    if "edit_date" in update:
+                        for func in self._edited_message_handlers: func(MessageObject(self.bot, update))
+                    else:
+                        for func in self._message_handlers: func(MessageObject(self.bot, update))
+            threading.Thread(target=processor, args=(update,)).start()
         bot = telepot.aio.Bot(self.token)
         answerer = telepot.aio.helper.Answerer(bot)
         loop = asyncio.get_event_loop()
