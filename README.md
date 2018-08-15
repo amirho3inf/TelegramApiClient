@@ -21,7 +21,7 @@ client.run()
 
 
 ## Client
-> Client.Bot() #*[Telepot reference](http://telepot.readthedocs.io/en/latest/reference.html)*
+> Client.Bot() #*[Telepot basic bot](https://telepot.readthedocs.io/en/latest/reference.html#basic-bot)*
 
 > client.run()
 
