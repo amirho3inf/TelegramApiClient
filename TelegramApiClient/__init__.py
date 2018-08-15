@@ -175,6 +175,8 @@ class SubClient:
         return json.dumps(self.update, indent=4, sort_keys=True)
     def __getitem__(self, item):
         return self.update[item]
+    def __contains__(self, item):
+        return (item in self.update)
     def reply(self, text=None, photo=None, sticker=None, document=None, voice=None, audio=None, video=None, video_note=None, duration=None, length=None, parse_mode=None, disable_web_page_preview=None, disable_notification=None, reply_markup=None):
         if photo:
             return self.bot.sendPhoto(self.update['chat']['id'], photo, caption=text, reply_to_message_id=self.update['message_id'], parse_mode=parse_mode, disable_notification=disable_notification, reply_markup=reply_markup)
