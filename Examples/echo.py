@@ -5,7 +5,7 @@ client = Client(Api_Token)
 bot = client.Bot()
 
 @client.message(Filters.text)
-def MessageHandler(message, data):
+def MessageHandler(message):
     message.reply(message.text)
 
 client.run()
