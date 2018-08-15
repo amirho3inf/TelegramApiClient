@@ -158,15 +158,8 @@ class handlerObject:
 class SubClient:
     def __init__(self, bot, update):
         self.update = update
-        self.message_id = update['message_id']
-        self.message_type = update['type']
-        self.text = ''
-        self.callback_id = None
-        self.inline_id = None
         try: self.text = update['text']
-        except: pass
-        if self.message_type == "callback_query": self.callback_id = update['id']
-        if self.message_type == "inline_query": self.inline_id = update['id']
+        except: self.text = ''
         try: self.sender = update['from']['id']
         except: self.sender = None
         self.chat = update['chat']['id']
@@ -177,6 +170,9 @@ class SubClient:
         return self.update[item]
     def __contains__(self, item):
         return (item in self.update)
+    def __getattr__(self, item):
+        try: return self.update[item]
+        except: pass
     def reply(self, text=None, photo=None, sticker=None, document=None, voice=None, audio=None, video=None, video_note=None, duration=None, length=None, parse_mode=None, disable_web_page_preview=None, disable_notification=None, reply_markup=None):
         if photo:
             return self.bot.sendPhoto(self.update['chat']['id'], photo, caption=text, reply_to_message_id=self.update['message_id'], parse_mode=parse_mode, disable_notification=disable_notification, reply_markup=reply_markup)
