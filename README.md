@@ -4,9 +4,9 @@
 # Example 💡
 
 ```
-import TelegramApiClient
+from TelegramApiClient import Client, Filters
 
-client = TelegramApiClient.Client("123456789:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+client = Client("123456789:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 bot = client.Bot()
 
 @client.message(Filters.private)
