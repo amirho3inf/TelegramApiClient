@@ -10,7 +10,7 @@ client = TelegramApiClient.Client("123456789:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 bot = client.Bot()
 
 @client.message(Filters.private)
-def MessageHandler(message, data):
+def MessageHandler(message):
     message.reply(message.text)
     
 client.run()
