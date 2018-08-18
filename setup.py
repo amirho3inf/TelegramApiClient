@@ -12,8 +12,4 @@ setuptools.setup(
     url="https://github.com/amirho3inf/TelegramApiClient",
     license='MIT',
     packages=setuptools.find_packages(),
-    classifiers=(
-        "Programming Language :: Python :: 3.5",
-        "License :: OSI Approved :: MIT License"
-    ),
 )
