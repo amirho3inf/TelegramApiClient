@@ -226,7 +226,9 @@ class Client:
         self.token = token
         self.bot = telepot.Bot(token)
         if proxy:
-            if 'username' in proxy and 'password' in proxy: basic_auth = (proxy['username'], proxy['password'],)
+            try: username = proxy['username']; password = proxy['password']
+            except: username = None; password = None
+            if username and password : basic_auth = (proxy['username'], proxy['password'],)
             else: basic_auth = None
             telepot.api.set_proxy(proxy['url'], basic_auth=basic_auth)
         self._callback_query_handlers = []
