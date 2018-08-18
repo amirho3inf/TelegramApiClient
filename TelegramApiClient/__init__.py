@@ -222,9 +222,13 @@ class MessageObject:
     def edit_reply_markup(self, reply_markup):
         return self.bot.editMessageReplyMarkup((self.update['chat']['id'], self.update['message_id'],), reply_markup=reply_markup)
 class Client:
-    def __init__(self, token):
+    def __init__(self, token, proxy=None):
         self.token = token
         self.bot = telepot.Bot(token)
+        if proxy:
+            if 'username' in proxy and 'password' in proxy: basic_auth = (proxy['username'], proxy['password'],)
+            else: basic_auth = None
+            telepot.api.set_proxy(proxy['url'], basic_auth=basic_auth)
         self._callback_query_handlers = []
         self._inline_query_handlers = []
         self._message_handlers = []
