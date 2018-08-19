@@ -8,16 +8,19 @@ pip3 install TelegramApiClient
 # Example 💡
 
 ```
-from TelegramApiClient import Client, Filters
+from TelegramApiClient import *
 
-client = Client("123456789:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+Api_Token = "123456789:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+client = Client(Api_Token)
 bot = client.Bot()
 
-@client.message(Filters.private)
+# handle message if message in private chat and message type is text and message not forwarded and command is /start or /help
+@client.message( Filters.private & Filters.text & ~Filters.forwarded & (Filters.command(r'/start') | Filters.command(r'/help')) )
 def MessageHandler(message):
     message.reply(message.text)
-    
+
 client.run()
+
 ```
 
 
@@ -31,8 +34,6 @@ client.run()
 
 ## Decorators
 > Client.message(Filters or None)
-
-> Client.edited_message(Filters or None)
 
 > Client.callback_query(Filters or None)
 
@@ -56,6 +57,28 @@ client.run()
 > Filters.video_note
 
 > Filters.sticker
+
+> Filters.contact
+
+> Filters.location
+
+> Filters.caption
+
+> Filters.reply
+
+> Filters.new_chat_members
+
+> Filters.left_chat_member
+
+> Filters.new_chat_photo
+
+> Filters.delete_chat_photo
+
+> Filters.new_chat_title
+
+> Filters.new_chat_members
+
+> Filters.pinned_message
 
 > Filters.command(regular expression)
 

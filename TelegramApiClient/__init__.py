@@ -5,156 +5,128 @@ from telepot.namedtuple import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineK
 import asyncio
 import threading
 import json
-class Filters:
-    def text(func):
-        def inner(update):
-            if "message" in update:
-                if "text" in update['message']:
-                    func(update)
-            elif "text" in update:
-                func(update)
-        return inner
-    def photo(func):
-        def inner(update):
-            if "message" in update:
-                if "photo" in update['message']:
-                    func(update)
-            elif "photo" in update:
-                func(update)
-        return inner
-    def video(func):
-        def inner(update):
-            if "message" in update:
-                if "video" in update['message']:
-                    func(update)
-            elif "video" in update:
-                func(update)
-        return inner
-    def voice(func):
-        def inner(update):
-            if "message" in update:
-                if "voice" in update['message']:
-                    func(update)
-            elif "voice" in update:
-                func(update)
-        return inner
-    def audio(func):
-        def inner(update):
-            if "message" in update:
-                if "audio" in update['message']:
-                    func(update)
-            elif "audio" in update:
-                func(update)
-        return inner
-    def document(func):
-        def inner(update):
-            if "message" in update:
-                if "document" in update['message']:
-                    func(update)
-            elif "document" in update:
-                func(update)
-        return inner
-    def sticker(func):
-        def inner(update):
-            if "message" in update:
-                if "sticker" in update['message']:
-                    func(update)
-            elif "sticker" in update:
-                func(update)
-        return inner
-    def video_note(func):
-        def inner(update):
-            if "message" in update:
-                if "video_note" in update['message']:
-                    func(update)
-            elif "video_note" in update:
-                func(update)
-        return inner
-    def command(pattern):
-        def inner(func):
-            def inner2(update):
-                regex = re.compile(pattern, flags=re.MULTILINE | re.DOTALL)
-                if "text" in update and regex.match(update['text']):
-                    func(update)
-            return inner2
-        return inner
-    def group(func):
-        def inner(update):
-            if update['chat']['type'] == 'group':
-                func(update)
-        return inner
-    def supergroup(func):
-        def inner(update):
-            if update['chat']['type'] == 'supergroup':
-                func(update)
-        return inner
-    def private(func):
-        def inner(update):
-            if update['chat']['type'] == 'private':
-                func(update)
-        return inner
-    def channel(func):
-        def inner(update):
-            if update['chat']['type'] == 'channel':
-                func(update)
-        return inner
-    def chat_id(chat_id):
-        def inner(func):
-            def inner2(update):
-                if type(chat_id) is list:
-                    for id in chat_id:
-                        if update['chat']['id'] == id:
-                            func(update)
-                elif type(chat_id) is int:
-                    if update['chat']['id'] == chat_id:
-                        func(update)
-            return inner2
-        return inner
-    def chat_name(filter_name):
-        def inner(func):
-            def inner2(update):
-                if "title" in update['chat']:
-                    chat_name = update['chat']['title']
-                elif "first_name" in update['chat']:
-                    chat_name = update['chat']["first_name"]
-                    if "last_name" in update['chat']:
-                        chat_name += " " + update['chat']['last_name']
-                if type(filter_name) is list:
-                    for name in filter_name:
-                        if str(name) == chat_name:
-                            func(update)
-                elif type(filter_name) is str:
-                    if filter_name == chat_name:
-                        func(update)
-            return inner2
-        return inner
-    def chat_username(filter_username):
-        def inner(func):
-            def inner2(update):
-                if 'username' in update['chat']:
-                    username = update['chat']['username'].lower()
-                else:
-                    username = ''
-                if type(filter_username) is list:
-                    for chat_username in filter_username:
-                        chat_username = chat_username.replace("@", "")
-                        if str(chat_username).lower() == username:
-                            func(update)
-                elif type(filter_username) is str:
-                    filter_username = filter_username.replace("@", "")
-                    if filter_username.lower() == username:
-                        func(update)
-            return inner2
-        return inner
-class handlerObject:
-    def __init__(self, func, filter):
-        self.filter = filter
+
+class Filter:
+    def __call__(self, message):
+        raise NotImplementedError
+
+    def __invert__(self):
+        return InvertFilter(self)
+
+    def __and__(self, other):
+        return AndFilter(self, other)
+
+    def __or__(self, other):
+        return OrFilter(self, other)
+
+class InvertFilter(Filter):
+    def __init__(self, func):
         self.func = func
-    def process(self, message):
-        @self.filter
-        def subprocess(message):
-            self.func(message)
-        subprocess(message)
+
+    def __call__(self, message):
+        return not self.func(message)
+
+class AndFilter(Filter):
+    def __init__(self, func, other):
+        self.func = func
+        self.other = other
+
+    def __call__(self, message):
+        return self.func(message) and self.other(message)
+
+class OrFilter(Filter):
+    def __init__(self, func, other):
+        self.func = func
+        self.other = other
+
+    def __call__(self, message):
+        return self.func(message) or self.other(message)
+
+def BUILD(name, func):
+    return type(name, (Filter,), {"__call__": func})()
+
+class Filters:
+    text = BUILD('text', lambda _, message: ("text" in message['message']) if ("message" in message) else ("text" in message))
+
+    photo = BUILD('photo', lambda _, message: ("photo" in message['message']) if ("message" in message) else ("photo" in message))
+
+    video = BUILD('video', lambda _, message: ("video" in message['message']) if ("message" in message) else ("video" in message))
+
+    voice = BUILD('voice', lambda _, message: ("voice" in message['message']) if ("message" in message) else ("voice" in message))
+
+    audio = BUILD('audio', lambda _, message: ("audio" in message['message']) if ("message" in message) else ("audio" in message))
+
+    document = BUILD('document', lambda _, message: ("document" in message['message']) if ("message" in message) else ("document" in message))
+
+    sticker = BUILD('sticker', lambda _, message: ("sticker" in message['message']) if ("message" in message) else ("sticker" in message))
+
+    video_note = BUILD('video_note', lambda _, message: ("video_note" in message['message']) if ("message" in message) else ("video_note" in message))
+
+    supergroup = BUILD('supergroup', lambda _, message: (message['chat']['type'] == 'supergroup'))
+
+    private = BUILD('private', lambda _, message: (message['chat']['type'] == 'private'))
+
+    group = BUILD('group', lambda _, message: (message['chat']['type'] == 'group'))
+
+    channel = BUILD('channel', lambda _, message: (message['chat']['type'] == 'channel'))
+
+    reply = BUILD('reply', lambda _, message: ('reply_to_message' in message))
+
+    forwarded = BUILD('forwarded', lambda _, message: ('forward_date' in message))
+
+    caption = BUILD('caption', lambda _, message: ('caption' in message))
+
+    edited = BUILD('edited', lambda _, message: ('edit_date' in message))
+
+    contact = BUILD('contact', lambda _, message: ('contact' in message))
+
+    location = BUILD('location', lambda _, message: ('location' in message))
+
+    new_chat_members = BUILD('new_chat_members', lambda _, message: ('new_chat_members' in message))
+
+    left_chat_member = BUILD('left_chat_member', lambda _, message: ('left_chat_member' in message))
+
+    new_chat_title = BUILD('new_chat_title', lambda _, message: ('new_chat_title' in message))
+
+    new_chat_photo = BUILD('new_chat_photo', lambda _, message: ('new_chat_photo' in message))
+
+    delete_chat_photo = BUILD('delete_chat_photo', lambda _, message: ('delete_chat_photo' in message))
+
+    pinned_message = BUILD('pinned_message', lambda _, message: ('pinned_message' in message))
+
+    def command(pattern):
+        regex = re.compile(pattern, flags=re.MULTILINE | re.DOTALL)
+        return BUILD('command', (lambda _, message: regex.match(message['text']) if ('text' in message) else False))
+
+    def chat_id(ChatFilter):
+        if type(ChatFilter) is list:
+            return BUILD('chat_id', (lambda _, message: (True in [(message['chat']['id']==chat) for chat in ChatFilter])))
+        elif type(ChatFilter) is int:
+            return BUILD('chat_id', lambda _, message: (message['chat']['id']==ChatFilter))
+
+    def chat_name(NameFilter):
+        def Check(_, message):
+            NameFilter = NameFilter.lower()
+            chat_name = message['chat']['title'].lower() if ('title' in message['chat']) else ''
+            lastName = ' '+message['chat']['last_name'].lower() if ('last_name' in message['chat']) else ''
+            chat_name = message['chat']['first_name'].lower()+lastName if 'first_name' in message['chat'] else ''
+            if type(NameFilter) is list:
+                for name in NameFilter:
+                    if name == chat_name: return True
+            elif type(NameFilter) is str:
+                return NameFilter==chat_name
+        return BUILD('chat_name', Check)
+
+    def chat_username(UsernameFilter):
+        def Check(_, message):
+            username = message['chat']['username'].lower() if 'username' in message['chat'] else ''
+            if type(UsernameFilter) is list:
+                    for Username in UsernameFilter:
+                        if username == Username.lower().replace('@', ''): return True
+            elif type(UsernameFilter) is str:
+                return username==UsernameFilter.lower().replace('@', '')
+        return BUILD('chat_username', Check)
+
 class MessageObject:
     def __init__(self, bot, update):
         self.update = update
@@ -164,15 +136,21 @@ class MessageObject:
         except: self.sender = None
         self.chat = update['chat']['id']
         self.bot = bot
+
     def __str__(self):
         return json.dumps(self.update, indent=4, sort_keys=True)
+
     def __getitem__(self, item):
         return self.update[item]
+
     def __contains__(self, item):
-        return (item in self.update)
+        try: return (item in self.update)
+        except: pass
+
     def __getattr__(self, item):
         try: return self.update[item]
         except: pass
+
     def reply(self, text=None, photo=None, sticker=None, document=None, voice=None, audio=None, video=None, video_note=None, duration=None, length=None, parse_mode=None, disable_web_page_preview=None, disable_notification=None, reply_markup=None):
         if photo:
             return self.bot.sendPhoto(self.update['chat']['id'], photo, caption=text, reply_to_message_id=self.update['message_id'], parse_mode=parse_mode, disable_notification=disable_notification, reply_markup=reply_markup)
@@ -190,6 +168,7 @@ class MessageObject:
             return self.bot.sendSticker(self.update['chat']['id'], sticker, reply_to_message_id=self.update['message_id'], disable_notification=disable_notification, reply_markup=reply_markup)
         elif text:
             return self.bot.sendMessage(self.update['chat']['id'], text, reply_to_message_id=self.update['message_id'], parse_mode=parse_mode, disable_web_page_preview=disable_web_page_preview, disable_notification=disable_notification, reply_markup=reply_markup)
+
     def respond(self, text=None, photo=None, sticker=None, document=None, reply_to_message_id=None, voice=None, audio=None, video=None, video_note=None, duration=None, length=None, parse_mode=None, disable_web_page_preview=None, disable_notification=None, reply_markup=None):
         if photo:
             return self.bot.sendPhoto(self.update['chat']['id'], photo, caption=text, reply_to_message_id=reply_to_message_id, parse_mode=parse_mode, disable_notification=disable_notification, reply_markup=reply_markup)
@@ -207,20 +186,26 @@ class MessageObject:
             return self.bot.sendSticker(self.update['chat']['id'], sticker, reply_to_message_id=reply_to_message_id, disable_notification=disable_notification, reply_markup=reply_markup)
         elif text:
             return self.bot.sendMessage(self.update['chat']['id'], text, reply_to_message_id=reply_to_message_id, parse_mode=parse_mode, disable_web_page_preview=disable_web_page_preview, disable_notification=disable_notification, reply_markup=reply_markup)
+
     def answer(self, text, alert=None):
         if self.update['type'] == "callback_query":
             return self.bot.answerCallbackQuery(self.update['id'], text, show_alert=alert)
+
     def forward(self, chat_id, disable_notification=None):
         return self.bot.forwardMessage(chat_id, from_chat_id=self.update['chat']['id'], message_id=self.update['message_id'], disable_notification=disable_notification)
+
     def delete(self):
         return self.bot.deleteMessage((self.update['chat']['id'], self.update['message_id'],))
+
     def edit(self, text, parse_mode=None, disable_web_page_preview=None, reply_markup=None):
         if "text" in self.update['message']:
             return self.bot.editMessageText((self.update['chat']['id'], self.update['message_id'],), text, parse_mode=parse_mode, disable_web_page_preview=disable_web_page_preview, reply_markup=reply_markup)
         elif "caption" in self.update['message']:
             return self.bot.editMessageCaption((self.update['chat']['id'], self.update['message_id'],), text, parse_mode=parse_mode, reply_markup=reply_markup)
+
     def edit_reply_markup(self, reply_markup):
         return self.bot.editMessageReplyMarkup((self.update['chat']['id'], self.update['message_id'],), reply_markup=reply_markup)
+
 class Client:
     def __init__(self, token, proxy=None):
         self.token = token
@@ -234,18 +219,13 @@ class Client:
         self._callback_query_handlers = []
         self._inline_query_handlers = []
         self._message_handlers = []
-        self._edited_message_handlers = []
-    def message(self, filter=lambda func: (lambda update: func(update))):
+    def message(self, filter=lambda message: True):
         def inner(func):
-            self._message_handlers.append(handlerObject(func, filter).process)
+            self._message_handlers.append(lambda message: func(message) if filter(message) else None)
         return inner
-    def edited_message(self, filter=lambda func: (lambda update: func(update))):
+    def callback_query(self, filter=lambda message: True):
         def inner(func):
-            self._edited_message_handlers.append(handlerObject(func, filter).process)
-        return inner
-    def callback_query(self, filter=lambda func: (lambda update: func(update))):
-        def inner(func):
-            self._callback_query_handlers.append(handlerObject(func, filter).process)
+            self._callback_query_handlers.append(lambda message: func(message) if filter(message) else None)
         return inner
     def inline_query(self):
         def inner(func):
@@ -271,10 +251,7 @@ class Client:
                     for func in self._inline_query_handlers: func(MessageObject(self.bot, update))
                 else:
                     update['type'] = "message"
-                    if "edit_date" in update:
-                        for func in self._edited_message_handlers: func(MessageObject(self.bot, update))
-                    else:
-                        for func in self._message_handlers: func(MessageObject(self.bot, update))
+                    for func in self._message_handlers: func(MessageObject(self.bot, update))
             threading.Thread(target=processor, args=(update,)).start()
         bot = telepot.aio.Bot(self.token)
         answerer = telepot.aio.helper.Answerer(bot)
