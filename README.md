@@ -35,7 +35,7 @@ client.run()
 ## Decorators
 > @Client.message(Filters or None)
 
-> Client.callback_query(Filters or None)
+> @Client.callback_query(Filters or None)
 
 > @Client.edited_message(Filters or None)
 
