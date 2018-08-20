@@ -37,8 +37,6 @@ client.run()
 
 > @Client.callback_query(Filters or None)
 
-> @Client.callback_query(Filters or None)
-
 > @Client.inline_query(Filters or None)
 
 ## Filters
