@@ -36,11 +36,10 @@ client.run()
 > @Client.message(Filters or None)
 
 > Client.callback_query(Filters or None)
-=======
+
 > @Client.edited_message(Filters or None)
 
 > @Client.callback_query(Filters or None)
->>>>>>> e372ef82e6ec363479f557353556be8eb1f02496
 
 > @Client.inline_query(Filters or None)
 
