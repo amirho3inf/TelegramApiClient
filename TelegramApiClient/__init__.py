@@ -242,16 +242,16 @@ class Client:
                     update['text'] = update['data']
                     update["chat"] = update["message"]["chat"]
                     update["message_id"] = update["message"]["message_id"]
-                    for func in self._callback_query_handlers: func(MessageObject(self.bot, update))
+                    for func in self._callback_query_handlers: threading.Thread(target=func, args=(MessageObject(self.bot, update),)).start()
                 elif "query" in update:
                     update['type'] = "inline_query"
                     update['text'] = update['query']
                     update['chat'] = update['from']
                     update['message_id'] = None
-                    for func in self._inline_query_handlers: func(MessageObject(self.bot, update))
+                    for func in self._inline_query_handlers: threading.Thread(target=func, args=(MessageObject(self.bot, update),)).start()
                 else:
                     update['type'] = "message"
-                    for func in self._message_handlers: func(MessageObject(self.bot, update))
+                    for func in self._message_handlers: threading.Thread(target=func, args=(MessageObject(self.bot, update),)).start()
             threading.Thread(target=processor, args=(update,)).start()
         bot = telepot.aio.Bot(self.token)
         answerer = telepot.aio.helper.Answerer(bot)
