@@ -136,4 +136,4 @@ client.run()
 > InlineKeyboard([[dict(text='URL', url='https://core.telegram.org/')], [InlineKeyboardButton(text='Callback', callback_data='Callback data')], [dict(text='Switch to using bot inline', switch_inline_query='initial query')]])
 
 ## Set proxy
-> Client(Token, proxy=dict(url="https://host:port, username=None, password=None))
+> Client(Token, proxy=dict(url="https://host:port", username=None, password=None))
