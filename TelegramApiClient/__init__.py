@@ -1,8 +1,7 @@
 import re
 import telepot
-import telepot.aio
 from telepot.namedtuple import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup
-import asyncio
+from telepot.loop import MessageLoop
 import threading
 import json
 
@@ -234,31 +233,29 @@ class Client:
     def Bot(self):
         return self.bot
     def run(self):
-        @asyncio.coroutine
-        def updates_processor(update):
-            def processor(update):
-                if "data" in update:
-                    update['type'] = "callback_query"
-                    update['text'] = update['data']
-                    update["chat"] = update["message"]["chat"]
-                    update["message_id"] = update["message"]["message_id"]
-                    for func in self._callback_query_handlers: threading.Thread(target=func, args=(MessageObject(self.bot, update),)).start()
-                elif "query" in update:
-                    update['type'] = "inline_query"
-                    update['text'] = update['query']
-                    update['chat'] = update['from']
-                    update['message_id'] = None
-                    for func in self._inline_query_handlers: threading.Thread(target=func, args=(MessageObject(self.bot, update),)).start()
-                else:
-                    update['type'] = "message"
-                    for func in self._message_handlers: threading.Thread(target=func, args=(MessageObject(self.bot, update),)).start()
-            threading.Thread(target=processor, args=(update,)).start()
-        bot = telepot.aio.Bot(self.token)
-        answerer = telepot.aio.helper.Answerer(bot)
-        loop = asyncio.get_event_loop()
-        loop.create_task(bot.message_loop({'chat': updates_processor, 'callback_query': updates_processor, 'inline_query': updates_processor, }))
+        def MessagesProcessor(update):
+            update['type'] = "message"
+            for func in self._message_handlers: threading.Thread(target=func, args=(MessageObject(self.bot, update),)).start()
+        def CallbackQueriesProcessor(update):
+            update['type'] = "callback_query"
+            update['text'] = update['data']
+            update["chat"] = update["message"]["chat"]
+            update["message_id"] = update["message"]["message_id"]
+            for func in self._callback_query_handlers: threading.Thread(target=func, args=(MessageObject(self.bot, update),)).start()
+        def InlineQueriesProcessor(update):
+            update['type'] = "inline_query"
+            update['text'] = update['query']
+            update['chat'] = update['from']
+            update['message_id'] = 0
+            for func in self._inline_query_handlers: threading.Thread(target=func, args=(MessageObject(self.bot, update),)).start()
+        MessageLoop(self.bot, {
+        'chat': MessagesProcessor,
+        'callback_query': CallbackQueriesProcessor,
+        'inline_query': InlineQueriesProcessor,
+        }).run_as_thread()
         print("TelegramApiClient runned as @{}".format(self.bot.getMe()['username']))
-        loop.run_forever()
+        while 1:
+            input('')
 RemoveKeyboard = ReplyKeyboardRemove
 Keyboard = lambda data, resize_keyboard=True: ReplyKeyboardMarkup(keyboard=data, resize_keyboard=resize_keyboard)
 InlineKeyboard = lambda data: InlineKeyboardMarkup(inline_keyboard=data)
