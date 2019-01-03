@@ -1,4 +1,5 @@
 import re
+import time
 import telepot
 from telepot.namedtuple import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup
 from telepot.loop import MessageLoop
@@ -255,7 +256,7 @@ class Client:
         }).run_as_thread()
         print("TelegramApiClient runned as @{}".format(self.bot.getMe()['username']))
         while 1:
-            input('')
+            time.sleep(10)
 RemoveKeyboard = ReplyKeyboardRemove
 Keyboard = lambda data, resize_keyboard=True: ReplyKeyboardMarkup(keyboard=data, resize_keyboard=resize_keyboard)
 InlineKeyboard = lambda data: InlineKeyboardMarkup(inline_keyboard=data)
