@@ -1,8 +1,9 @@
 import re
 import time
 import telepot
-from telepot.namedtuple import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardMarkup
-from telepot.loop import MessageLoop
+from telepot.namedtuple import *
+from telepot.loop import *
+from telepot import *
 import threading
 import json
 
@@ -206,6 +207,32 @@ class MessageObject:
     def edit_reply_markup(self, reply_markup):
         return self.bot.editMessageReplyMarkup((self.update['chat']['id'], self.update['message_id'],), reply_markup=reply_markup)
 
+
+class InlineQueryMessageObject:
+    def __init__(self, bot, update):
+        self.update = update
+        self.text = update['text']
+        self.sender = update['from']['id']
+        self.chat = update['chat']['id']
+        self.bot = bot
+
+    def __str__(self):
+        return json.dumps(self.update, indent=4, sort_keys=True)
+
+    def __getitem__(self, item):
+        return self.update[item]
+
+    def __contains__(self, item):
+        try: return (item in self.update)
+        except: pass
+
+    def __getattr__(self, item):
+        try: return self.update[item]
+        except: pass
+
+    def answer(self, results, cache_time=None, is_personal=None, next_offset=None, switch_pm_text=None, switch_pm_parameter=None):
+        return self.bot.answerInlineQuery(self.update['id'], results, cache_time=cache_time, is_personal=is_personal, next_offset=next_offset, switch_pm_text=switch_pm_text, switch_pm_parameter=switch_pm_parameter)
+
 class Client:
     def __init__(self, token, proxy=None):
         self.token = token
@@ -248,7 +275,7 @@ class Client:
             update['text'] = update['query']
             update['chat'] = update['from']
             update['message_id'] = 0
-            for func in self._inline_query_handlers: threading.Thread(target=func, args=(MessageObject(self.bot, update),)).start()
+            for func in self._inline_query_handlers: threading.Thread(target=func, args=(InlineQueryMessageObject(self.bot, update),)).start()
         MessageLoop(self.bot, {
         'chat': MessagesProcessor,
         'callback_query': CallbackQueriesProcessor,
