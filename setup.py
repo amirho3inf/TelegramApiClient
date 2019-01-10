@@ -3,7 +3,7 @@ import setuptools
 install_requires = ['telepot==12.6']
 setuptools.setup(
     name="TelegramApiClient",
-    version="0.71",
+    version="0.72",
     author="AmirHo3inF",
     author_email="MrAmirho3inf@gmail.com",
     description="Telepot upgraded version",
